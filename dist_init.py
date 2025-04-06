@@ -134,8 +134,7 @@ get_parquet([config.image_root_path
 print(f'[INFO] len of parquet_list:
 {len(tar_list)})
 tar_list = sorted (tar _list)
-range_list =
-split_parquet_by_count/config, tar_list, rank, num_proc_per_node, num_total_proc)
+range_list = split_parquet_by_count/config, tar_list, rank, num_proc_per_node, num_total_proc)
 process _list: ListImp.Process] = 0]
 for ida, r in enumerate(range_list):
 
