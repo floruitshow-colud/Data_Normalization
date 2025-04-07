@@ -13,8 +13,7 @@ from tools.config_utils import ConfigUtils
 import requests
 mox.file.shiftl('os', 'mox')
 import io
-from zip_type.classify_and_process_files i
-import init_main
+from zip_type.classify_and_process_files import init_main
 
 
 def run_task(config,rank):
@@ -101,48 +100,29 @@ if __name__ == '__main__':
     os.makedirs('/cache/txt', exist_ok= True)
 
 
-    mp.set_start_method (spawn")
-    world_size =
-    intlos.environ.get("MA_NUM_HOSTS",
-    "1"））
-    rank =
-    intlos.environ.get("VC_TASK_INDEX",
+    mp.set_start_method("spawn")
+    world_size = int(os.environ.get("MA_NUM_HOSTS", "1"))
+    rank = int(os.environ.get("VC_TASK_INDEX",0))
 
-    num_devices =
-    intlos.environ.get("MA_NUM_GPUS",
-    "1"））
-    # num_proc_per_node =
-    num_devices
-    num proc_per_node = config.num_proc_per_node
-    num_total_proc =
-    num_proc_per_node * world_size
+    num_devices = int(os.environ.get("MA_NUM_GPUS","1"))
+    # num_proc_per_node = num_devices
+    num_proc_per_node = config.num_proc_per_node
+    num_total_proc = num_proc_per_node * world_size
     num_device_per_task = 1
-    tar_list =
-    get_parquet([config.image_root_path
-    ],")
-    600359
-    print(f'[INFO] len of parquet_list:{len(tar_list)})
-    tar_list = sorted (tar _list)
-    range_list = split_parquet_by_count/config, tar_list, rank, num_proc_per_node, num_total_proc)
-    process _list: ListImp.Process] = 0]
-    for ida, r in enumerate(range_list):
+    tar_list = get_parquet([config.image_root_path],"")
 
+    print(f'[INFO] len of parquet_list:{len(tar_list)}')
     tar_list = sorted(tar_list)
-    range_list =
-    split_parquet_by_count/config, tar_list, rank, num_proc_per_node, num_total_proc)
-    process_list: Listlmp.Process」 =1
-    for id, r in enumerate(range_list): print(f"[INFO] node_idx:trank),
-    proc:fidx), split range _list:(len(r)},
-    {r [:101}... )
-    cfg_ = deepcopy(config)
-    cfg_local_rank = idx
-    cfg_.device_list = list(li + idx *
-    num_device_per_task for i in
-    range(num_device_per_task)])
-    cfg_index_list = , join(r)
-    p = mp.Process(target=run_task,
-    args=(cfg_, rank), daemon=False)
-    process_list.append(p)
-    for p in process_list:
-    p.start)
-    wait_complete(process_list, rank)
+    range_list = split_parquet_by_count(config, tar_list, rank, num_proc_per_node, num_total_proc)
+    process_list: List[mp.Process] = []
+    for idx, r in enumerate(range_list):
+        print(f"[INFO] node_idx:{rank},proc:{idx}, split_range_list:{len(r)},{r[:10]}...")
+        cfg_ = deepcopy(config)
+        cfg_local_rank = idx
+        cfg_.device_list = list([i + idx * num_device_per_task for i in range(num_device_per_task)])
+        cfg_index_list = ','.join(r)
+        p = mp.Process(target=run_task,args=(cfg_, rank), daemon=False)
+        process_list.append(p)
+        for p in process_list:
+            p.start()
+        wait_complete(process_list, rank)
