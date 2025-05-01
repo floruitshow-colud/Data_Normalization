@@ -1,0 +1,14 @@
+# 临时下载存放目录
+tmp_tar_local_path:
+ex_local_zip_path:
+ex_out_zip_path:
+file_no_jpg:
+tmp_img_local_path:
+init_parquet_local:
+
+num_proc_per_node: 8
+start: 0
+end: 8
+
+# 输入文件目录
+image_root_path:

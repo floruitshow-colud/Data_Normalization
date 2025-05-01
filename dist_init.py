@@ -6,12 +6,9 @@ from copy import deepcopy
 import multiprocessing as mp
 from typing import List
 from pathlib import Path
-
-import moxing as mox
 import numpy as np
 from tools.config_utils import ConfigUtils
 import requests
-mox.file.shiftl('os', 'mox')
 import io
 from zip_type.classify_and_process_files import init_main
 
@@ -70,24 +67,17 @@ def wait_complete(process_list: List [mp.Process], rank: int):
 
         complete_flag = any([p.is_alive() for p in process_list]) is False
     print(f"rank:{rank} task complete.")
-def generate_files(image_dir,recursive=False):
+def get_parquet(image_dir,recursive=False):
     glob_pattern = '**/*' if recursive else '*'
     return [
         str(p.absolute())
         for p in Path(image_dir).glob(glob_pattern)
         if not (p.name.startswith('.') or p.is_dir())
     ]
-def get_parquet(path_list, file_type):
-    parquet_list = []
-    for path in path_list:
 
-        parquet_list += [os.path.join(path,file) for file in mox.file.list_directory(path,recursive=True, skip_dir=False) if not file.endswith('.xlsx) and not file.endswith.csv) ]
-    # parquet _list +=  [os.path.join(path, file) for file in os.listdir(path) if file.endswith(file_type)]
-    print(f"(path} parquet _list is {len(parquet_list)}")
-    return parquet_list
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config_file, type=str, default="config_SJZG.yaml"')
+    parser.add_argument('--config_file, type=str, default="config.yaml"')
     args, unparsed = parser.parse_known_args()
     config = ConfigUtils.parse_config(args)
 
@@ -109,7 +99,7 @@ if __name__ == '__main__':
     num_proc_per_node = config.num_proc_per_node
     num_total_proc = num_proc_per_node * world_size
     num_device_per_task = 1
-    tar_list = get_parquet([config.image_root_path],"")
+    tar_list = get_parquet([config.image_root_path],recursive=True)
 
     print(f'[INFO] len of parquet_list:{len(tar_list)}')
     tar_list = sorted(tar_list)
